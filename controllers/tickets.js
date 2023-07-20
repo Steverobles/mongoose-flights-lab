@@ -1,27 +1,32 @@
-const Ticket = require('../model/ticket')
-const Flight = require('../model/flight')
+const Flight = require("../model/flight");
+const Ticket = require("../model/ticket");
 
 module.exports = {
-    new:newTicket,
-    create
-    
-}
+    new: newTicket,
+    create,
+    addToFlight,
+};
 
-function newTicket(req, res) {
-
-    res.render('tickets/new', {title: 'Add Flight', flightId:req.params.id, errorMsg: ''})
-}
-
-
-async function create(req,res) {
-    try {
-      const ticket = new Ticket(req.body) 
-      ticket.flight = req.params.id
-      await ticket.save();
-      res.redirect(`/flights/${req.params.id}`);
-    } catch (err) {
+async function addToFlight(req, res) {
+    const ticket = await Ticket.findById(req.params.id);
+    ticket.flight.push(req.body.flightId);
+    await ticket.save();
+    res.redirect(`/flights/${flight._id}`);
+};
   
+async function newTicket(req, res) {
+    const flight = await Flight.findById(req.params.id);
+    const ticket = await Ticket.find({}).sort('seat');
+    res.render('tickets/new', { title: 'Add Ticket', ticket, flight });
+};
+  
+async function create(req, res) {
+    const flight = await Flight.findById(req.params.id);
+    req.body.flight = req.params.id
+    try {
+      await Ticket.create(req.body);
+    } catch (err) {
       console.log(err);
-      res.render('tickets/show', { errorMsg: err.message });
     }
-  }
+    res.redirect(`/flights/${flight._id}`);
+};
